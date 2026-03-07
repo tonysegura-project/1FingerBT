@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Behavior Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+    max-width: 500px;
+    width: 95%;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+        input, select {
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .row select {
+            flex: 1;
+        }
+
+        button {
+    padding: 16px;
+    margin: 6px 0;
+    border: none;
+    border-radius: 10px;
+    background: #007bff;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+}
+.delete-btn {
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #buttons button {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 18px;
+    padding: 18px;
+}
+
+        #counts li {
+            background: #f1f1f1;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .menu-container {
+            position: relative;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            padding: 10px;
+            z-index: 10;
+        }
+
+        .danger {
+            background: red;
+        }
+
+        .dots-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Behavior Tracker</h1>
+
+<h3>Client</h3>
+<input type="text" id="sessionName" placeholder="Enter client name">
+<br>
+<button onclick="createSession()">Add Session</button>
+
+<br>
+
+<!-- ✅ THIS IS THE FIXED SECTION -->
+<div class="row">
+
+    <select id="sessionSelect" onchange="loadSession()"></select>
+
+    <div class="menu-container">
+        <button onclick="toggleMenu()" class="dots-btn">⋮</button>
+
+        <div id="menu" class="menu-dropdown">
+            <button onclick="deleteSession()" class="danger">Delete Session</button>
+        </div>
+    </div>
+
+</div>
+
+<hr>
+
+<h3>Add Behavior</h3>
+<input type="text" id="newBehavior" placeholder="Enter behavior">
+<br><br>
+<button onclick="addBehavior()">Add</button>
+
+<h3>Behaviors</h3>
+<div id="buttons"></div>
+
+<h3>Counts</h3>
+<ul id="counts"></ul>
+
+<h3 id="totalCount">Total behaviors: 0</h3>
+
+<br>
+<button onclick="saveManually()">SAVE</button>
+<button onclick="generatePDF()">SUMMARY (PDF)</button>
+<button onclick="resetCounts()">RESET COUNTS</button>
+
+</div>
+
+<script>
+let sessions = JSON.parse(localStorage.getItem("sessions")) || {};
+let currentSession = null;
+let data = {};
+function resetCounts() {
+
+    if (!currentSession) return;
+
+    let confirmReset = confirm("Reset all behavior counts?");
+    if (!confirmReset) return;
+
+    for (let behavior in data) {
+        data[behavior] = 0;
+    }
+
+    sessions[currentSession].data = data;
+    saveSessions();
+
+    render();
+}
+
+function saveSessions() {
+    localStorage.setItem("sessions", JSON.stringify(sessions));
+}
+
+function saveManually() {
+    if (currentSession) {
+        sessions[currentSession].data = data;
+        saveSessions();
+        alert("Saved!");
+    }
+}
+
+function createSession() {
+    let input = document.getElementById("sessionName");
+    let name = input.value.trim();
+    if (!name) return;
+
+    let today = new Date();
+    let date = `${today.getMonth()+1}/${today.getDate()}/${today.getFullYear()}`;
+    let key = `${name} - ${date}`;
+
+    sessions[key] = {
+        data: {},
+        createdAt: Date.now()
+    };
+
+    currentSession = key;
+    data = sessions[key].data;
+
+    saveSessions();
+    updateSessionDropdown();
+
+    document.getElementById("sessionSelect").value = key;
+
+    render();
+    input.value = "";
+}
+
+function loadSession() {
+    let select = document.getElementById("sessionSelect");
+    currentSession = select.value;
+
+    if (sessions[currentSession]) {
+        data = sessions[currentSession].data || {};
+    } else {
+        data = {};
+    }
+
+    render();
+}
+
+function deleteSession() {
+    if (!currentSession) return;
+
+    let confirmDelete = confirm("Delete this session?");
+    if (!confirmDelete) return;
+
+    delete sessions[currentSession];
+
+    saveSessions();
+
+    // ✅ Refresh dropdown + auto-select next session
+    updateSessionDropdown();
+}
+
+function deleteBehavior(behavior) {
+
+    let confirmDelete = confirm("Delete this behavior?");
+    if (!confirmDelete) return;
+
+    delete data[behavior];
+
+    sessions[currentSession].data = data;
+    saveSessions();
+
+    render();
+}
+
+function updateSessionDropdown() {
+    let select = document.getElementById("sessionSelect");
+    select.innerHTML = "";
+
+    let keys = Object.keys(sessions);
+
+    for (let key of keys) {
+        select.innerHTML += `<option value="${key}">${key}</option>`;
+    }
+
+    // ✅ Auto-select first session if exists
+    if (keys.length > 0) {
+        currentSession = keys[0];
+        select.value = currentSession;
+        data = sessions[currentSession].data || {};
+    } else {
+        currentSession = null;
+        data = {};
+    }
+
+    render();
+}
+
+function addBehavior() {
+    if (!currentSession) {
+    alert("Please create a session first");
+    return;
+}
+
+    let input = document.getElementById("newBehavior");
+    let behavior = input.value.trim();
+
+    if (!behavior) return;
+
+    if (!data[behavior]) {
+        data[behavior] = 0;
+    }
+
+    sessions[currentSession].data = data;
+    saveSessions();
+
+    render();
+    input.value = "";
+}
+
+function sendData(behavior) {
+    if (!currentSession) return;
+
+    if (!data[behavior]) {
+        data[behavior] = 0;
+    }
+
+    data[behavior]++;
+
+    sessions[currentSession].data = data;
+    saveSessions();
+
+    render();
+}
+
+function render() {
+    let btnDiv = document.getElementById("buttons");
+    let list = document.getElementById("counts");
+    let total = 0;
+
+    btnDiv.innerHTML = "";
+    list.innerHTML = "";
+
+    for (let key in data) {
+        btnDiv.innerHTML += `<button onclick="sendData('${key}')">${key}</button>`;
+        list.innerHTML += `<li><button onclick="deleteBehavior('${key}')" class="delete-btn">X</button> ${key}: ${data[key]}</li>`;
+
+        total += data[key];
+    }
+
+    document.getElementById("totalCount").innerText = "Total behaviors: " + total;
+}
+
+function generatePDF() {
+    if (!currentSession) return alert("No session");
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.text("Behavior Summary", 20, 20);
+    doc.text(currentSession, 20, 30);
+
+    let y = 50;
+
+    for (let key in data) {
+        doc.text(`${key}: ${data[key]}`, 20, y);
+        y += 10;
+    }
+
+    doc.save(currentSession + ".pdf");
+}
+
+function autoDeleteOldSessions() {
+    let now = Date.now();
+    let limit = 48 * 60 * 60 * 1000;
+
+    for (let key in sessions) {
+        if (now - sessions[key].createdAt > limit) {
+            delete sessions[key];
+        }
+    }
+
+    saveSessions();
+}
+
+function toggleMenu() {
+    let menu = document.getElementById("menu");
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+}
+
+window.addEventListener("click", function(e) {
+    if (!e.target.closest(".menu-container")) {
+        document.getElementById("menu").style.display = "none";
+    }
+});
+
+document.getElementById("newBehavior").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") addBehavior();
+});
+document.getElementById("sessionName").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") createSession();
+});
+
+// INIT
+autoDeleteOldSessions();
+updateSessionDropdown();
+</script>
+
+</body>
+</html>
