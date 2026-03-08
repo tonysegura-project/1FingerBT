@@ -14,6 +14,10 @@ class Behavior(db.Model):
     count = db.Column(db.Integer, default=0)
 @app.route("/")
 def index():
+    behaviors = Behavior.query.all()
+
+    data = {b.name: b.count for b in behaviors}
+
     return render_template("index.html", data=data)
 
 @app.route("/add_behavior", methods=["POST"])
@@ -53,5 +57,7 @@ with app.app_context():
 if __name__ == "__main__":
     app.run()
 
-    #python app.py
+    #python app.py 
+
+    
     
