@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -18,16 +18,33 @@ def index():
 
 @app.route("/add_behavior", methods=["POST"])
 def add_behavior():
-    behavior = request.json.get("behavior")
-    if behavior and behavior not in data:
-        data[behavior] = 0
+    behavior_name = request.json.get("behavior")
+
+    if behavior_name:
+        new_behavior = Behavior(name=behavior_name, count=0)
+        db.session.add(new_behavior)
+        db.session.commit()
+
+    behaviors = Behavior.query.all()
+
+    data = {b.name: b.count for b in behaviors}
+
     return jsonify(data)
 
 @app.route("/update", methods=["POST"])
 def update():
-    behavior = request.json.get("behavior")
-    if behavior in data:
-        data[behavior] += 1
+    behavior_name = request.json.get("behavior")
+
+    behavior = Behavior.query.filter_by(name=behavior_name).first()
+
+    if behavior:
+        behavior.count += 1
+        db.session.commit()
+
+    behaviors = Behavior.query.all()
+
+    data = {b.name: b.count for b in behaviors}
+
     return jsonify(data)
 
 with app.app_context():
