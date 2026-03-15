@@ -136,6 +136,18 @@ def delete_session(session_id):
         db.session.commit()
     return get_sessions()
 
+# tell it how to find the manifest.json and sw.js in your root folder
+
+from flask import send_from_directory
+
+@app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory('.', 'manifest.json')
+
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory('.', 'sw.js')
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
