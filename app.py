@@ -1,101 +1,142 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey123"
+app.secret_key = "aba_tracker_secret_key" # Change this for production
 
+# Database Configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+# Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db = SQLAlchemy(app)
-
-data = {}
-class Behavior(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    count = db.Column(db.Integer, default=0)
-@app.route("/")
-@login_required
-def index():
-    behaviors = Behavior.query.all()
-
-    data = {b.name: b.count for b in behaviors}
-
-    return render_template("index.html", data=data)
+# ---------------- MODELS ----------------
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(200))
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    sessions = db.relationship('Session', backref='user', lazy=True)
 
-@app.route("/add_behavior", methods=["POST"])
-def add_behavior():
-    behavior_name = request.json.get("behavior")
+class Session(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False) # Client Name
+    date = db.Column(db.String(50), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    behaviors = db.relationship('Behavior', backref='session', cascade="all, delete-orphan", lazy=True)
 
-    if behavior_name:
-        new_behavior = Behavior(name=behavior_name, count=0)
-        db.session.add(new_behavior)
+class Behavior(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    count = db.Column(db.Integer, default=0)
+    session_id = db.Column(db.Integer, db.ForeignKey("session.id"), nullable=False)
+
+# ---------------- ROUTES ----------------
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route("/")
+@login_required
+def index():
+    return render_template("index.html")
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        if User.query.filter_by(email=email).first():
+            flash("Email already exists.")
+            return redirect(url_for("signup"))
+        new_user = User(email=email, password=generate_password_hash(password))
+        db.session.add(new_user)
         db.session.commit()
+        return redirect(url_for("login"))
+    return render_template("signup.html")
 
-    behaviors = Behavior.query.all()
-
-    data = {b.name: b.count for b in behaviors}
-
-    return jsonify(data)
-
-@app.route("/update", methods=["POST"])
-def update():
-    behavior_name = request.json.get("behavior")
-
-    behavior = Behavior.query.filter_by(name=behavior_name).first()
-
-    if behavior:
-        behavior.count += 1
-        db.session.commit()
-
-    behaviors = Behavior.query.all()
-
-    data = {b.name: b.count for b in behaviors}
-
-    return jsonify(data)
-
-@app.route("/login", methods=["GET","POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-
-        email = request.form["email"]
-        password = request.form["password"]
-
+        email = request.form.get("email")
+        password = request.form.get("password")
         user = User.query.filter_by(email=email).first()
-
-        if user and user.password == password:
+        if user and check_password_hash(user.password, password):
             login_user(user)
-            return redirect("/")
-
+            return redirect(url_for("index"))
+        flash("Invalid credentials.")
     return render_template("login.html")
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    return redirect("/login")
+    return redirect(url_for("login"))
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+# ---------------- API DATA ROUTES ----------------
 
-with app.app_context():
-    db.create_all()
+@app.route("/create_session", methods=["POST"])
+@login_required
+def create_session():
+    data = request.json
+    new_session = Session(name=data['name'], date=data['date'], user_id=current_user.id)
+    db.session.add(new_session)
+    db.session.commit()
+    return get_sessions()
+
+@app.route("/get_sessions")
+@login_required
+def get_sessions():
+    sessions = Session.query.filter_by(user_id=current_user.id).all()
+    return jsonify([{"id": s.id, "name": s.name, "date": s.date} for s in sessions])
+
+@app.route("/get_behaviors/<int:session_id>")
+@login_required
+def get_behaviors(session_id):
+    behaviors = Behavior.query.filter_by(session_id=session_id).all()
+    return jsonify({b.name: b.count for b in behaviors})
+
+@app.route("/add_behavior", methods=["POST"])
+@login_required
+def add_behavior():
+    data = request.json
+    session_id = data.get("session_id")
+    name = data.get("behavior")
+    
+    existing = Behavior.query.filter_by(name=name, session_id=session_id).first()
+    if not existing:
+        new_b = Behavior(name=name, count=0, session_id=session_id)
+        db.session.add(new_b)
+        db.session.commit()
+    return get_behaviors(session_id)
+
+@app.route("/update_count", methods=["POST"])
+@login_required
+def update_count():
+    data = request.json
+    behavior = Behavior.query.filter_by(name=data['behavior'], session_id=data['session_id']).first()
+    if behavior:
+        behavior.count += 1
+        db.session.commit()
+    return get_behaviors(data['session_id'])
+
+@app.route("/delete_session/<int:session_id>", methods=["POST"])
+@login_required
+def delete_session(session_id):
+    session = Session.query.get(session_id)
+    if session and session.user_id == current_user.id:
+        db.session.delete(session)
+        db.session.commit()
+    return get_sessions()
 
 if __name__ == "__main__":
-    app.run()
-
-    #python app.py 
-
-    
-    
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True, host="0.0.0.0", port=5000)
