@@ -139,13 +139,22 @@ def delete_session(session_id):
 
 # tell it how to find the manifest.json and sw.js in your root folder
 
-@app.route('/manifest.json')
+@@app.route('/manifest.json')
 def serve_manifest():
-    return send_file(os.path.join(os.path.dirname(__file__), 'manifest.json'), mimetype='application/json')
+    try:
+        # This looks for the file in the same folder as app.py
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        return send_file(os.path.join(base_dir, 'manifest.json'), mimetype='application/json')
+    except Exception as e:
+        return str(e), 404
 
 @app.route('/sw.js')
 def serve_sw():
-    return send_file(os.path.join(os.path.dirname(__file__), 'sw.js'), mimetype='application/javascript')
+    try:
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        return send_file(os.path.join(base_dir, 'sw.js'), mimetype='application/javascript')
+    except Exception as e:
+        return str(e), 404
 
 if __name__ == "__main__":
     with app.app_context():
