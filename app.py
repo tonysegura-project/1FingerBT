@@ -137,12 +137,11 @@ def delete_session(session_id):
         db.session.commit()
     return get_sessions()
 
-# tell it how to find the manifest.json and sw.js in your root folder
+# ---------------- PWA ROUTES ----------------
 
 @app.route('/manifest.json')
 def serve_manifest():
     try:
-        # This looks for the file in the same folder as app.py
         base_dir = os.path.abspath(os.path.dirname(__file__))
         return send_file(os.path.join(base_dir, 'manifest.json'), mimetype='application/json')
     except Exception as e:
@@ -156,10 +155,12 @@ def serve_sw():
     except Exception as e:
         return str(e), 404
 
+# ---------------- STARTUP ----------------
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    # Render provides a PORT environment variable, so we use 5000 as a backup
-    import os
+    
+    # Corrected Render Port Logic
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
