@@ -1,5 +1,5 @@
+import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file
-# ... other imports ...
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -139,7 +139,7 @@ def delete_session(session_id):
 
 # tell it how to find the manifest.json and sw.js in your root folder
 
-@@app.route('/manifest.json')
+@app.route('/manifest.json')
 def serve_manifest():
     try:
         # This looks for the file in the same folder as app.py
