@@ -274,8 +274,15 @@ function render() {
 
 function deleteSession() {
     if (!confirm("Delete this session?") || !currentSessionId) return;
-    fetch(`/delete_session/${currentSessionId}`, {method: 'POST'})
-        .then(() => fetchSessions());
+
+    fetch(`/delete_session/${currentSessionId}`, { method: 'POST' })
+        .then(res => {
+            if (res.ok) {
+                // This is the most important part! 
+                // It forces the app to go get the NEW list from the server.
+                fetchSessions(); 
+            }
+        });
 }
 
 function generatePDF() {

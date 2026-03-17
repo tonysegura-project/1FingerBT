@@ -133,11 +133,18 @@ def update_count():
 @app.route("/delete_session/<int:session_id>", methods=["POST"])
 @login_required
 def delete_session(session_id):
-    session = Session.query.get(session_id)
-    if session and session.user_id == current_user.id:
-        db.session.delete(session)
+    # Use db.session.get for the most modern way to find the session
+    session_to_delete = Session.query.get(session_id)
+    
+    if session_to_delete and session_to_delete.user_id == current_user.id:
+        # This deletes the session and tells the DB to save
+        db.session.delete(session_to_delete)
         db.session.commit()
-    return get_sessions()
+        
+        # Instead of calling another function, just send a "Success" message
+        return jsonify({"status": "success", "message": "Session deleted"}), 200
+    
+    return jsonify({"status": "error", "message": "Could not find session"}), 404
 
 # ---------------- PWA ROUTES ----------------
 
