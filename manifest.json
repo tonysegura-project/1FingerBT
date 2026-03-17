@@ -1,9 +1,15 @@
 {
   "short_name": "1FingerBT",
   "name": "1Finger Behavior Tracker",
+  "description": "Professional RBT Behavior Tracking Tool",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3063/3063176.png",
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -13,5 +19,6 @@
   "background_color": "#f5f7fa",
   "display": "standalone",
   "scope": "/",
-  "theme_color": "#007bff"
+  "theme_color": "#007bff",
+  "orientation": "portrait"
 }
