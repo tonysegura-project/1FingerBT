@@ -1,167 +1,184 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>RBT Session Tracker</title>
+    <title>1FingerBT - Behavior Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* Keeping your original styling Antonio, it looked great! */
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    text-align: center;
-    padding: 10px; /* Reduced padding for mobile */
-    margin: 0;
-    display: flex;
-    justify-content: center; /* Centers the container horizontally */
-}
-.container {
-    max-width: 500px;
-    width: 100%; /* Take full width on small screens */
-    margin: 10px auto; /* Centers it and adds a small top/bottom gap */
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* NEW: The Top Navigation Bar */
+        .navbar {
+            width: 100%;
+            background: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo {
+            height: 40px;
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .nav-title {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 95%;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
         input, select { padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; box-sizing: border-box;}
-button {
-    padding: 18px; /* Slightly larger for touch */
-    margin: 8px 0;
-    border: none;
-    border-radius: 10px;
-    background: #007bff;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 18px; /* Bigger text for easier reading */
-    touch-action: manipulation; /* Removes the 300ms tap delay on mobile */
-}
+        
+        button {
+            padding: 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 10px;
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            touch-action: manipulation;
+        }
+
         button:hover { background: #0056b3; }
-        .row { display: flex; gap: 8px; margin-bottom: 10px; }
-        #counts li { list-style: none; background: #eee; padding: 10px; margin: 5px 0; border-radius: 8px; display: flex; justify-content: space-between; }
-        .danger { background: #dc3545; }
+        
+        .row { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+        .row input, .row select { margin-bottom: 0; flex: 1; }
 
-        /* 1. Makes input and button sit side-by-side */
-.row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 15px;
-}
+        #counts li { list-style: none; background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #eee; }
+        
+        .danger { background: #dc3545 !important; }
 
-.row input, .row select {
-    margin-bottom: 0; 
-    flex: 1; 
-}
+        .menu-container { position: relative; display: inline-block; }
+        .dots-btn { width: 44px !important; height: 44px !important; padding: 0 !important; background: #6c757d !important; margin: 0 !important; font-size: 20px; }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 100;
+            border-radius: 8px;
+        }
 
-/* 2. Style for the 3-dot menu container */
-.menu-container {
-    position: relative;
-    display: inline-block;
-}
+        .dropdown-content button {
+            margin: 0;
+            border-radius: 0;
+            width: 100%;
+            text-align: left;
+            padding: 12px;
+            background: white;
+            color: #dc3545;
+        }
 
-/* 3. Style for the dots button itself */
-.dots-btn {
-    width: 44px !important;
-    height: 44px !important;
-    padding: 0 !important;
-    background: #666 !important;
-    margin: 0 !important;
-    font-size: 20px;
-    line-height: 44px;
-}
+        .show { display: block !important; }
+    </style>
 
-/* 4. The hidden menu box */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 50px;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-    z-index: 100;
-    border-radius: 8px;
-}
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
 
-.dropdown-content button {
-    margin: 0;
-    border-radius: 0;
-    width: 100%;
-    text-align: left;
-    padding: 12px;
-    background: white;
-    color: red; /* Make delete stand out */
-}
-
-/* 5. Utility class to show the menu */
-.show { display: block !important; }
-
-</style>
-<link rel="manifest" href="/manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="1FingerBT">
-
-<link rel="icon" type="image/png" href="/logo.png">
-
-<link rel="apple-touch-icon" href="/logo.png">
-
-<script>
-  if ('service-worker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker registered!'))
-        .catch(err => console.log('Service Worker failed:', err));
-    });
-  }
-</script>
+    <script>
+      if ('service-worker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered!'))
+            .catch(err => console.log('Service Worker failed:', err));
+        });
+      }
+    </script>
 </head>
 <body>
 
+<nav class="navbar">
+    <div class="nav-brand">
+        <img src="/logo.png" alt="1FingerBT Logo" class="nav-logo">
+        <span class="nav-title">1FingerBT</span>
+    </div>
+    <a href="/logout"><button style="padding: 8px 15px; background: #6c757d; font-size: 14px; margin: 0;">Logout</button></a>
+</nav>
+
 <div class="container">
-    <div style="text-align:right;"><a href="/logout"><button style="width:auto; padding:8px; background:#666;">Logout</button></a></div>
-    <h1>Behavior Tracker</h1>
+    <h1 style="text-align: center; color: #333;">Behavior Tracker</h1>
 
     <h3>Client Details</h3>
     <input type="text" id="clientName" placeholder="Enter client name">
-    <button onclick="createSession()">Add Session</button>
+    <button onclick="createSession()" style="width: 100%;">Add Session</button>
 
-    <hr>
-<h3>Select Session</h3>
-<div class="row">
-    <select id="sessionSelect" onchange="loadBehaviors()"></select>
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
     
-    <div class="menu-container">
-        <button onclick="toggleMenu(event)" class="dots-btn">⋮</button>
-        <div id="sessionMenu" class="dropdown-content">
-            <button onclick="deleteSession()" class="danger">Delete Session</button>
+    <h3>Select Session</h3>
+    <div class="row">
+        <select id="sessionSelect" onchange="loadBehaviors()"></select>
+        <div class="menu-container">
+            <button onclick="toggleMenu(event)" class="dots-btn">⋮</button>
+            <div id="sessionMenu" class="dropdown-content">
+                <button onclick="deleteSession()" class="danger" style="color: white;">Delete Session</button>
+            </div>
         </div>
     </div>
-</div>
 
-<hr>
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-<h3>Track Behaviors</h3>
-<div class="row">
-    <input type="text" id="newBehavior" placeholder="Enter behavior (e.g. Tantrum)">
-    <button onclick="addBehavior()" style="width: auto; padding: 0 20px; height: 44px; margin: 0;">Add</button>
-</div>
+    <h3>Track Behaviors</h3>
+    <div class="row">
+        <input type="text" id="newBehavior" placeholder="e.g. Tantrum">
+        <button onclick="addBehavior()" style="width: auto; padding: 0 20px; height: 44px; margin: 0;">Add</button>
+    </div>
 
-    <div id="behaviorButtons"></div>
-    <ul id="counts"></ul>
-    <h3 id="totalCount">Total: 0</h3>
+    <div id="behaviorButtons" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+    
+    <ul id="counts" style="padding: 0;"></ul>
+    <h3 id="totalCount" style="background: #e9ecef; padding: 15px; border-radius: 8px;">Total Behaviors: 0</h3>
 
-    <button onclick="alert('Data is auto-saved to server!')" style="background: #28a745;">SAVE DATA</button>
-    <button onclick="generatePDF()" style="background: #17a2b8;">SUMMARY (PDF)</button>
+    <button onclick="alert('Data is auto-saved to server!')" style="background: #28a745; width: 100%;">SAVE DATA</button>
+    <button onclick="generatePDF()" style="background: #17a2b8; width: 100%;">SUMMARY (PDF)</button>
 </div>
 
 <script>
+// (Your existing JavaScript remains the same below)
 let currentSessionId = null;
 let behaviorData = {};
 
-// Load sessions on startup
 window.onload = fetchSessions;
 
 function fetchSessions() {
@@ -252,7 +269,7 @@ function render() {
         list.innerHTML += `<li><span>${name}</span> <span>${behaviorData[name]}</span></li>`;
         total += behaviorData[name];
     }
-    document.getElementById("totalCount").innerText = "Total behaviors: " + total;
+    document.getElementById("totalCount").innerText = "Total Behaviors: " + total;
 }
 
 function deleteSession() {
@@ -286,13 +303,11 @@ function generatePDF() {
     doc.save(`Session_Summary.pdf`);
 }
 
-// Function to show/hide the 3-dot menu
 function toggleMenu(event) {
-    event.stopPropagation(); // Prevents the click from closing the menu immediately
+    event.stopPropagation();
     document.getElementById("sessionMenu").classList.toggle("show");
 }
 
-// Automatically close the menu if you click anywhere else on the screen
 window.onclick = function(event) {
     if (!event.target.matches('.dots-btn')) {
         var dropdowns = document.getElementsByClassName("dropdown-content");
