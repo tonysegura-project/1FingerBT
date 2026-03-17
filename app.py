@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -160,7 +160,7 @@ def serve_sw():
 @app.route('/logo.png')
 def serve_logo():
     try:
-        # This tells Flask to look inside the 'static' folder for 'logo.png'
+        # This looks inside your new 'static' folder
         return send_from_directory('static', 'logo.png')
     except Exception as e:
         return str(e), 404
