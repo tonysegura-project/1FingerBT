@@ -159,7 +159,11 @@ def serve_sw():
 
 @app.route('/logo.png')
 def serve_logo():
-    return send_from_directory('static', 'logo.png')
+    try:
+        # This tells Flask to look inside the 'static' folder for 'logo.png'
+        return send_from_directory('static', 'logo.png')
+    except Exception as e:
+        return str(e), 404
 
 # ---------------- STARTUP ----------------
 
