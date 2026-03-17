@@ -5,11 +5,13 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = "aba_tracker_secret_key" # Change this for production
 
-# Database Configuration
+# --- Updated Configuration Section ---
+app.config['SECRET_KEY'] = "aba_tracker_secret_key"
+app.config['SESSION_PERMANENT'] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 db = SQLAlchemy(app)
 
 # Login Manager
@@ -70,7 +72,7 @@ def login():
         password = request.form.get("password")
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
-            login_user(user)
+            login_user(user, remember=False)
             return redirect(url_for("index"))
         flash("Invalid credentials.")
     return render_template("login.html")
