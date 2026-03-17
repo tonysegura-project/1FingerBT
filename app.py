@@ -177,9 +177,11 @@ def serve_logo():
 # ---------------- STARTUP ----------------
 
 if __name__ == "__main__":
+    # 1. Create the database tables first
     with app.app_context():
         db.create_all()
     
-    # Corrected Render Port Logic
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    # 2. Start the server on the port Render requires
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
