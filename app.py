@@ -159,13 +159,7 @@ def serve_sw():
 
 @app.route('/logo.png')
 def serve_logo():
-    try:
-        # This points exactly to your main folder
-        base_dir = os.path.abspath(os.path.dirname(__file__))
-        return send_file(os.path.join(base_dir, 'logo.png'), mimetype='image/png')
-    except Exception as e:
-        # If the file is missing, this tells us why in the logs
-        return str(e), 404
+    return send_from_directory('static', 'logo.png')
 
 # ---------------- STARTUP ----------------
 
