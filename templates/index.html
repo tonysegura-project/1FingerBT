@@ -141,7 +141,7 @@
     <h1 style="text-align: center; color: #333;">Behavior Tracker</h1>
 
     <h3>Client Details</h3>
-    <input type="text" id="clientName" placeholder="Enter client name">
+    <input type="text" id="clientName" placeholder="Enter client name" onkeydown="if(event.key === 'Enter') createSession()">
     <button onclick="createSession()" style="width: 100%;">Add Session</button>
 
     <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
@@ -161,7 +161,7 @@
 
     <h3>Track Behaviors</h3>
     <div class="row">
-        <input type="text" id="newBehavior" placeholder="e.g. Tantrum">
+        <input type="text" id="newBehavior" placeholder="e.g. Tantrum" onkeydown="if(event.key === 'Enter') addBehavior()">
         <button onclick="addBehavior()" style="width: auto; padding: 0 20px; height: 44px; margin: 0;">Add</button>
     </div>
 
@@ -198,7 +198,8 @@ function fetchSessions() {
 }
 
 function createSession() {
-    const name = document.getElementById("clientName").value;
+    const input = document.getElementById("clientName");
+    const name = input.value;
     if (!name) return alert("Enter client name");
     const date = new Date().toLocaleDateString();
 
@@ -210,7 +211,8 @@ function createSession() {
     .then(res => res.json())
     .then(sessions => {
         fetchSessions();
-        document.getElementById("clientName").value = "";
+        input.value = ""; // Clear the box
+        input.focus();    // Put the cursor back
     });
 }
 
@@ -227,7 +229,8 @@ function loadBehaviors() {
 }
 
 function addBehavior() {
-    const behavior = document.getElementById("newBehavior").value;
+    const input = document.getElementById("newBehavior");
+    const behavior = input.value;
     if (!behavior || !currentSessionId) return;
 
     fetch('/add_behavior', {
@@ -239,7 +242,8 @@ function addBehavior() {
     .then(data => {
         behaviorData = data;
         render();
-        document.getElementById("newBehavior").value = "";
+        input.value = ""; // Clear the box
+        input.focus();    // Put the cursor back
     });
 }
 
