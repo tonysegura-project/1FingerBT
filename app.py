@@ -9,7 +9,8 @@ app = Flask(__name__)
 # --- Updated Configuration Section ---
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 app.config['SESSION_PERMANENT'] = False
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
+# Note the 4 slashes: sqlite:////
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
