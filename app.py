@@ -9,17 +9,28 @@ app = Flask(__name__)
 # 1. The Secret Key
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 
-# 2. The Persistent Disk Logic (Fixed for SQLAlchemy 2.0)
+# --- IMPROVED DATABASE SETUP ---
 DB_DIR = "/var/lib/data"
 DB_NAME = "behavior_tracker.db"
 
 if os.path.exists(DB_DIR):
-    # We use 3 slashes here because the absolute path provides the 4th slash
     db_path = os.path.abspath(os.path.join(DB_DIR, DB_NAME))
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    print(f"DEBUG: Attempting to use disk at {db_path}")
 else:
-    # Local fallback for your computer
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
+    print("DEBUG: Disk not found, using local fallback")
+
+db = SQLAlchemy(app)
+
+# Move this here to catch errors during startup
+try:
+    with app.app_context():
+        db.create_all()
+        print("DEBUG: Database tables created successfully!")
+except Exception as e:
+    print(f"DEBUG ERROR: Could not create tables: {e}")
+# -------------------------------
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['SESSION_PERMANENT'] = False
