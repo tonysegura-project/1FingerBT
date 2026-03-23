@@ -9,9 +9,26 @@ app = Flask(__name__)
 # --- Updated Configuration Section ---
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 app.config['SESSION_PERMANENT'] = False
-# Note the 4 slashes: sqlite:////
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
+import os
+
+# --- PERSISTENT DISK LOGIC ---
+# This is the folder we told Render to use
+DB_FOLDER = "/var/lib/data"
+
+# Safety check: If we are on Render, make sure the folder exists
+if not os.path.exists(DB_FOLDER):
+    try:
+        os.makedirs(DB_FOLDER)
+    except Exception as e:
+        print(f"Error creating directory: {e}")
+        # Fallback to local folder if the disk is missing (prevents crash)
+        DB_FOLDER = os.path.abspath(os.path.dirname(__file__))
+
+# 4 slashes for absolute path
+db_path = os.path.join(DB_FOLDER, 'behavior_tracker.db')
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:////{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# -----------------------------
 
 db = SQLAlchemy(app)
 
