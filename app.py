@@ -9,26 +9,31 @@ app = Flask(__name__)
 # --- Updated Configuration Section ---
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 app.config['SESSION_PERMANENT'] = False
+
 import os
+import logging
 
-# --- PERSISTENT DISK LOGIC ---
-# This is the folder we told Render to use
-DB_FOLDER = "/var/lib/data"
+# This prints errors directly to your Render Logs so we can see them
+logging.basicConfig(level=logging.INFO)
 
-# Safety check: If we are on Render, make sure the folder exists
-if not os.path.exists(DB_FOLDER):
-    try:
-        os.makedirs(DB_FOLDER)
-    except Exception as e:
-        print(f"Error creating directory: {e}")
-        # Fallback to local folder if the disk is missing (prevents crash)
-        DB_FOLDER = os.path.abspath(os.path.dirname(__file__))
+app = Flask(__name__)
+# ... (your other config like SECRET_KEY) ...
 
-# 4 slashes for absolute path
-db_path = os.path.join(DB_FOLDER, 'behavior_tracker.db')
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:////{db_path}"
+# 1. Define the disk path
+DB_DIR = "/var/lib/data"
+DB_PATH = os.path.join(DB_DIR, "behavior_tracker.db")
+
+# 2. Check if we are on Render and if the disk is actually there
+if os.path.exists(DB_DIR):
+    # This is the "Professional" way to format the SQLite path
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:////{DB_PATH}"
+    print(f"DATABASE STATUS: Using Persistent Disk at {DB_PATH}")
+else:
+    # Fallback so the app doesn't crash if the disk is missing
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
+    print("DATABASE STATUS: Disk not found! Using temporary local storage.")
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-# -----------------------------
 
 db = SQLAlchemy(app)
 
