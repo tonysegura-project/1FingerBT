@@ -6,20 +6,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# 1. The Secret Key (Fixes the "RuntimeError")
+# 1. The Secret Key
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 
-# 2. The Persistent Disk Logic (Fixes the "Vanishing Data")
+# 2. The Persistent Disk Logic (Fixed for SQLAlchemy 2.0)
 DB_DIR = "/var/lib/data"
-DB_PATH = os.path.join(DB_DIR, "behavior_tracker.db")
+DB_NAME = "behavior_tracker.db"
 
 if os.path.exists(DB_DIR):
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:////{DB_PATH}"
+    # We use 3 slashes here because the absolute path provides the 4th slash
+    db_path = os.path.abspath(os.path.join(DB_DIR, DB_NAME))
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 else:
+    # Local fallback for your computer
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
 app.config['SESSION_PERMANENT'] = False
 
 db = SQLAlchemy(app)
@@ -143,15 +145,11 @@ def update_count():
 @app.route("/delete_session/<int:session_id>", methods=["POST"])
 @login_required
 def delete_session(session_id):
-    # Use db.session.get for the most modern way to find the session
     session_to_delete = Session.query.get(session_id)
     
     if session_to_delete and session_to_delete.user_id == current_user.id:
-        # This deletes the session and tells the DB to save
         db.session.delete(session_to_delete)
         db.session.commit()
-        
-        # Instead of calling another function, just send a "Success" message
         return jsonify({"status": "success", "message": "Session deleted"}), 200
     
     return jsonify({"status": "error", "message": "Could not find session"}), 404
@@ -179,7 +177,6 @@ def serve_sw():
 @app.route('/logo.png')
 def serve_logo():
     try:
-        # This looks inside your new 'static' folder
         return send_from_directory('static', 'logo.png')
     except Exception as e:
         return str(e), 404
@@ -187,11 +184,8 @@ def serve_logo():
 # ---------------- STARTUP ----------------
 
 if __name__ == "__main__":
-    # 1. Create the database tables first
     with app.app_context():
         db.create_all()
     
-    # 2. Start the server on the port Render requires
-    import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
