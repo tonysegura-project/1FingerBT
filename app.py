@@ -6,34 +6,21 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# --- Updated Configuration Section ---
+# 1. The Secret Key (Fixes the "RuntimeError")
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
-app.config['SESSION_PERMANENT'] = False
 
-import os
-import logging
-
-# This prints errors directly to your Render Logs so we can see them
-logging.basicConfig(level=logging.INFO)
-
-app = Flask(__name__)
-# ... (your other config like SECRET_KEY) ...
-
-# 1. Define the disk path
+# 2. The Persistent Disk Logic (Fixes the "Vanishing Data")
 DB_DIR = "/var/lib/data"
 DB_PATH = os.path.join(DB_DIR, "behavior_tracker.db")
 
-# 2. Check if we are on Render and if the disk is actually there
 if os.path.exists(DB_DIR):
-    # This is the "Professional" way to format the SQLite path
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:////{DB_PATH}"
-    print(f"DATABASE STATUS: Using Persistent Disk at {DB_PATH}")
 else:
-    # Fallback so the app doesn't crash if the disk is missing
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
-    print("DATABASE STATUS: Disk not found! Using temporary local storage.")
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+app.config['SESSION_PERMANENT'] = False
 
 db = SQLAlchemy(app)
 
