@@ -6,45 +6,35 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# 1. The Secret Key
+# 1. Configuration
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
+app.config['SESSION_PERMANENT'] = False
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# --- IMPROVED DATABASE SETUP ---
+# 2. Database Path Logic
 DB_DIR = "/var/lib/data"
 DB_NAME = "behavior_tracker.db"
 
 if os.path.exists(DB_DIR):
     db_path = os.path.abspath(os.path.join(DB_DIR, DB_NAME))
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
-    print(f"DEBUG: Attempting to use disk at {db_path}")
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
-    print("DEBUG: Disk not found, using local fallback")
 
+# 3. Initialize Database ONCE
 db = SQLAlchemy(app)
 
-# Move this here to catch errors during startup
-try:
-    with app.app_context():
-        db.create_all()
-        print("DEBUG: Database tables created successfully!")
-except Exception as e:
-    print(f"DEBUG ERROR: Could not create tables: {e}")
-# -------------------------------
-
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config['SESSION_PERMANENT'] = False
-
-db = SQLAlchemy(app)
-
-# --- ADD THESE TWO LINES HERE ---
+# 4. Create Tables Immediately
 with app.app_context():
     db.create_all()
 
-# Login Manager
+# 5. Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
+# ---------------- MODELS ----------------
+# (Keep your User, Session, and Behavior classes exactly as they are below this line)
 
 # ---------------- MODELS ----------------
 
