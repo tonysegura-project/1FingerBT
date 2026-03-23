@@ -26,6 +26,10 @@ app.config['SESSION_PERMANENT'] = False
 
 db = SQLAlchemy(app)
 
+# --- ADD THESE TWO LINES HERE ---
+with app.app_context():
+    db.create_all()
+
 # Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -183,9 +187,7 @@ def serve_logo():
 
 # ---------------- STARTUP ----------------
 
+# Keep this part simple for Gunicorn
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
