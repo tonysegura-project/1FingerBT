@@ -6,40 +6,31 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# 1. Configuration
+# 1. Basic Configuration
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 app.config['SESSION_PERMANENT'] = False
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# 2. Database Path Logic
-DB_DIR = "/var/lib/data"
-DB_NAME = "behavior_tracker.db"
-
-if os.path.exists(DB_DIR):
-    db_path = os.path.abspath(os.path.join(DB_DIR, DB_NAME))
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+# 2. Database Path Logic (The fix for e3q8)
+# We check if we are on Render's disk, otherwise we use a local file.
+if os.path.exists("/var/lib/data"):
+    # This creates the exact path: sqlite:////var/lib/data/behavior_tracker.db
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
-
 
 # 3. Initialize Database
 db = SQLAlchemy(app)
 
-# 4. Create Tables (The "Force" version)
+# 4. Create Tables Immediately
+# This ensures that your brand-new disk gets the 'User' and 'Session' tables.
 with app.app_context():
-    try:
-        db.create_all()
-        print("DATABASE: Tables created successfully on the disk!")
-    except Exception as e:
-        print(f"DATABASE ERROR: {e}")
+    db.create_all()
 
 # 5. Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
-
-# ---------------- MODELS ----------------
-# (Keep your User, Session, and Behavior classes exactly as they are below this line)
 
 # ---------------- MODELS ----------------
 
@@ -51,7 +42,7 @@ class User(UserMixin, db.Model):
 
 class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False) # Client Name
+    name = db.Column(db.String(120), nullable=False) 
     date = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     behaviors = db.relationship('Behavior', backref='session', cascade="all, delete-orphan", lazy=True)
@@ -105,8 +96,6 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
-# ---------------- API DATA ROUTES ----------------
-
 @app.route("/create_session", methods=["POST"])
 @login_required
 def create_session():
@@ -134,7 +123,6 @@ def add_behavior():
     data = request.json
     session_id = data.get("session_id")
     name = data.get("behavior")
-    
     existing = Behavior.query.filter_by(name=name, session_id=session_id).first()
     if not existing:
         new_b = Behavior(name=name, count=0, session_id=session_id)
@@ -156,15 +144,11 @@ def update_count():
 @login_required
 def delete_session(session_id):
     session_to_delete = Session.query.get(session_id)
-    
     if session_to_delete and session_to_delete.user_id == current_user.id:
         db.session.delete(session_to_delete)
         db.session.commit()
         return jsonify({"status": "success", "message": "Session deleted"}), 200
-    
     return jsonify({"status": "error", "message": "Could not find session"}), 404
-
-# ---------------- PWA ROUTES ----------------
 
 @app.route('/manifest.json')
 def serve_manifest():
@@ -182,8 +166,6 @@ def serve_sw():
     except Exception as e:
         return str(e), 404
 
-#------------------LOGO PNG------------------   
-
 @app.route('/logo.png')
 def serve_logo():
     try:
@@ -192,8 +174,6 @@ def serve_logo():
         return str(e), 404
 
 # ---------------- STARTUP ----------------
-
-# Keep this part simple for Gunicorn
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
