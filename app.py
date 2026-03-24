@@ -6,24 +6,25 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# 1. Basic Configuration
+# 1. Configuration
 app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 app.config['SESSION_PERMANENT'] = False
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# 2. Database Path Logic (The fix for e3q8)
-# We check if we are on Render's disk, otherwise we use a local file.
+# 2. Database Path Logic
+# Render puts your persistent disk at /var/lib/data
 if os.path.exists("/var/lib/data"):
-    # This creates the exact path: sqlite:////var/lib/data/behavior_tracker.db
+    # We use 3 slashes because the path itself starts with the 4th one
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
 else:
+    # Local fallback for your computer
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
 
 # 3. Initialize Database
 db = SQLAlchemy(app)
 
-# 4. Create Tables Immediately
-# This ensures that your brand-new disk gets the 'User' and 'Session' tables.
+# 4. Create Tables (Safe Version)
+# This runs only when the app starts up to ensure the disk isn't empty
 with app.app_context():
     db.create_all()
 
