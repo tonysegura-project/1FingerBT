@@ -21,12 +21,17 @@ if os.path.exists(DB_DIR):
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
 
-# 3. Initialize Database ONCE
+
+# 3. Initialize Database
 db = SQLAlchemy(app)
 
-# 4. Create Tables Immediately
+# 4. Create Tables (The "Force" version)
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("DATABASE: Tables created successfully on the disk!")
+    except Exception as e:
+        print(f"DATABASE ERROR: {e}")
 
 # 5. Login Manager
 login_manager = LoginManager()
