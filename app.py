@@ -11,22 +11,20 @@ app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 app.config['SESSION_PERMANENT'] = False
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# 2. Database Path Logic
-# Render puts your persistent disk at /var/lib/data
+# 1. Database Path
 if os.path.exists("/var/lib/data"):
-    # We use 3 slashes because the path itself starts with the 4th one
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
 else:
-    # Local fallback for your computer
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
 
-# 3. Initialize Database
 db = SQLAlchemy(app)
 
-# 4. Create Tables (Safe Version)
-# This runs only when the app starts up to ensure the disk isn't empty
+# 2. THE POWER FIX: Create tables every time the app starts
 with app.app_context():
     db.create_all()
+    print("Database tables initialized!")
+
+# ... (rest of the code: LoginManager, Models, Routes) ...
 
 # 5. Login Manager
 login_manager = LoginManager()
