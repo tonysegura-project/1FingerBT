@@ -12,21 +12,14 @@ app.config['SESSION_PERMANENT'] = False
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # 2. Database Path Logic
-DB_PATH = "/var/lib/data/behavior_tracker.db"
-
+# Using exactly 4 slashes for Render's persistent disk
 if os.path.exists("/var/lib/data"):
-    # We ensure the folder is definitely treated as the home for the DB
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:////{DB_PATH}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
 
+# 3. Initialize Database and Login Manager
 db = SQLAlchemy(app)
-
-
-db.session.commit() 
-print("DATABASE: Tables created and session committed!")
-
-# 5. Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -52,9 +45,11 @@ class Behavior(db.Model):
     count = db.Column(db.Integer, default=0)
     session_id = db.Column(db.Integer, db.ForeignKey("session.id"), nullable=False)
 
+# ---------------- INITIALIZATION ----------------
+# This "with app.app_context():" block is what fixes the Render error!
 with app.app_context():
     db.create_all()
-    print("DATABASE: Tables created successfully!")
+    print("DATABASE: Tables initialized correctly.")
 
 # ---------------- ROUTES ----------------
 
