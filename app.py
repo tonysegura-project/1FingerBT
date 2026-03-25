@@ -11,20 +11,20 @@ app.config['SECRET_KEY'] = "aba_tracker_secret_key"
 app.config['SESSION_PERMANENT'] = False
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# 1. Database Path
+# 2. Database Path Logic
+DB_PATH = "/var/lib/data/behavior_tracker.db"
+
 if os.path.exists("/var/lib/data"):
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
+    # We ensure the folder is definitely treated as the home for the DB
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:////{DB_PATH}"
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///behavior_tracker.db"
 
 db = SQLAlchemy(app)
 
-# 2. THE POWER FIX: Create tables every time the app starts
-with app.app_context():
-    db.create_all()
-    print("Database tables initialized!")
 
-# ... (rest of the code: LoginManager, Models, Routes) ...
+db.session.commit() 
+print("DATABASE: Tables created and session committed!")
 
 # 5. Login Manager
 login_manager = LoginManager()
@@ -51,6 +51,10 @@ class Behavior(db.Model):
     name = db.Column(db.String(100), nullable=False)
     count = db.Column(db.Integer, default=0)
     session_id = db.Column(db.Integer, db.ForeignKey("session.id"), nullable=False)
+
+with app.app_context():
+    db.create_all()
+    print("DATABASE: Tables created successfully!")
 
 # ---------------- ROUTES ----------------
 
