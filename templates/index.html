@@ -15,7 +15,6 @@
             align-items: center;
         }
 
-        /* NEW: The Top Navigation Bar */
         .navbar {
             width: 100%;
             background: white;
@@ -30,23 +29,9 @@
             z-index: 1000;
         }
 
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .nav-logo {
-            height: 40px;
-            width: auto;
-            border-radius: 8px;
-        }
-
-        .nav-title {
-            font-weight: bold;
-            color: #333;
-            font-size: 1.2rem;
-        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { height: 40px; width: auto; border-radius: 8px; }
+        .nav-title { font-weight: bold; color: #333; font-size: 1.2rem; }
 
         .container {
             max-width: 500px;
@@ -74,14 +59,33 @@
             touch-action: manipulation;
         }
 
-        button:hover { background: #0056b3; }
+        button:hover { opacity: 0.9; }
         
         .row { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
         .row input, .row select { margin-bottom: 0; flex: 1; }
 
+        /* NEW: Button Row Styling */
+        .button-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            justify-content: space-between;
+        }
+
+        .button-row button {
+            flex: 1;
+            padding: 10px 5px;
+            font-size: 12px; /* Smaller text to fit the row */
+            margin: 0;
+            text-transform: uppercase;
+        }
+
         #counts li { list-style: none; background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #eee; }
         
         .danger { background: #dc3545 !important; }
+        .save-btn { background: #28a745 !important; }
+        .pdf-btn { background: #17a2b8 !important; }
+        .reset-btn { background: #ff4d4d !important; }
 
         .menu-container { position: relative; display: inline-block; }
         .dots-btn { width: 44px !important; height: 44px !important; padding: 0 !important; background: #6c757d !important; margin: 0 !important; font-size: 20px; }
@@ -108,81 +112,55 @@
             color: #dc3545;
         }
 
-       /* Styling the Reset Button */
-.reset-btn {
-    background-color: #ff4d4d; /* A bright, clear red */
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-    margin-top: 10px;
-}
+        /* Modal & Toast Styling */
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
 
-/* Darken the red when the mouse hovers over it */
-.reset-btn:hover {
-    background-color: #cc0000; /* A darker "blood red" */
-}
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
 
-/* Make it look "pushed" when clicked */
-.reset-btn:active {
-    background-color: #a30000;
-    transform: translateY(2px);
-}
+        .modal-actions { display: flex; justify-content: space-around; margin-top: 20px; }
+        .cancel-btn { background: #ccc; padding: 10px 20px; }
 
-/* Modal Background (Hidden by default) */
-.modal {
-    display: none; 
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5); /* Dim the background */
-    align-items: center;
-    justify-content: center;
-}
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 2000;
+            left: 50%; top: 30px;
+            transform: translateX(-50%);
+            font-weight: bold;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        }
 
-/* The White Box */
-.modal-content {
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-}
+        .toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
-.modal-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-around;
-}
-
-.cancel-btn { background: #ccc; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-.confirm-reset-btn { background: #ff4d4d; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-
+        @keyframes fadein { from {top: 0; opacity: 0;} to {top: 30px; opacity: 1;} }
+        @keyframes fadeout { from {top: 30px; opacity: 1;} to {top: 0; opacity: 0;} }
+        
         .show { display: block !important; }
     </style>
 
     <link rel="manifest" href="/manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
     <link rel="icon" type="image/png" href="/logo.png">
-    <link rel="apple-touch-icon" href="/logo.png">
-
-    <script>
-      if ('service-worker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered!'))
-            .catch(err => console.log('Service Worker failed:', err));
-        });
-      }
-    </script>
 </head>
 <body>
 
@@ -227,9 +205,11 @@
     <ul id="counts" style="padding: 0;"></ul>
     <h3 id="totalCount" style="background: #e9ecef; padding: 15px; border-radius: 8px;">Total Behaviors: 0</h3>
 
-    <button onclick="alert('Data is auto-saved to server!')" style="background: #28a745; width: 100%;">SAVE DATA</button>
-    <button onclick="generatePDF()" style="background: #17a2b8; width: 100%;">SUMMARY (PDF)</button>
-    <button onclick="resetAllCounts()" class="reset-btn">Reset All Counts to 0</button>
+    <div class="button-row">
+        <button onclick="showToast('Data is auto-saved!')" class="save-btn">Save</button>
+        <button onclick="generatePDF()" class="pdf-btn">PDF</button>
+        <button onclick="openResetModal()" class="reset-btn">Reset</button>
+    </div>
 </div>
 
 <div id="resetModal" class="modal">
@@ -237,14 +217,15 @@
     <h3>Are you sure?</h3>
     <p>This will set all behavior counts to 0 for this session. This action cannot be undone.</p>
     <div class="modal-actions">
-      <button onclick="closeResetModal()" class="cancel-btn">No, Cancel</button>
-      <button onclick="confirmReset()" class="confirm-reset-btn">Yes, Reset Counts</button>
+      <button onclick="closeResetModal()" class="cancel-btn">Cancel</button>
+      <button onclick="confirmReset()" class="confirm-reset-btn">Yes, Reset</button>
     </div>
   </div>
 </div>
 
+<div id="toast" class="toast">Success! ✅</div>
+
 <script>
-// (Your existing JavaScript remains the same below)
 let currentSessionId = null;
 let behaviorData = {};
 
@@ -278,10 +259,10 @@ function createSession() {
         body: JSON.stringify({name, date})
     })
     .then(res => res.json())
-    .then(sessions => {
+    .then(() => {
         fetchSessions();
-        input.value = ""; // Clear the box
-        input.focus();    // Put the cursor back
+        input.value = "";
+        input.focus();
     });
 }
 
@@ -311,8 +292,8 @@ function addBehavior() {
     .then(data => {
         behaviorData = data;
         render();
-        input.value = ""; // Clear the box
-        input.focus();    // Put the cursor back
+        input.value = "";
+        input.focus();
     });
 }
 
@@ -347,15 +328,8 @@ function render() {
 
 function deleteSession() {
     if (!confirm("Delete this session?") || !currentSessionId) return;
-
     fetch(`/delete_session/${currentSessionId}`, { method: 'POST' })
-        .then(res => {
-            if (res.ok) {
-                // This is the most important part! 
-                // It forces the app to go get the NEW list from the server.
-                fetchSessions(); 
-            }
-        });
+        .then(res => { if (res.ok) fetchSessions(); });
 }
 
 function generatePDF() {
@@ -392,58 +366,34 @@ window.onclick = function(event) {
     if (!event.target.matches('.dots-btn')) {
         var dropdowns = document.getElementsByClassName("dropdown-content");
         for (var i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
-            }
+            if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
         }
     }
 }
 
-async function resetAllCounts() {
-    if (!confirm("Are you sure you want to reset all counts to zero? This cannot be undone.")) {
-        return;
-    }
+// Reset Logic
+function openResetModal() { document.getElementById('resetModal').style.display = 'flex'; }
+function closeResetModal() { document.getElementById('resetModal').style.display = 'none'; }
 
-    // Get the current session ID from your app's state
-    const response = await fetch(`/reset_counts/${currentSessionId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (response.ok) {
-        // Refresh the display to show all zeros
-        loadBehaviors(currentSessionId); 
-        alert("Counts have been reset!");
-    } else {
-        alert("Error resetting counts.");
-    }
-}
-
-// Function to show the modal
-function openResetModal() {
-    document.getElementById('resetModal').style.display = 'flex';
-}
-
-// Function to hide the modal
-function closeResetModal() {
-    document.getElementById('resetModal').style.display = 'none';
-}
-
-// The actual Reset logic
 async function confirmReset() {
-    closeResetModal(); // Hide modal first
-    
+    closeResetModal();
     const response = await fetch(`/reset_counts/${currentSessionId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
     });
-
     if (response.ok) {
-        loadBehaviors(currentSessionId); // Refresh your behavior list
+        loadBehaviors();
+        showToast("Counts reset successfully! ✅");
     } else {
         alert("Error resetting counts.");
     }
+}
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.innerText = message;
+    toast.className = "toast show";
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
 }
 </script>
 </body>
