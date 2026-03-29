@@ -108,6 +108,63 @@
             color: #dc3545;
         }
 
+       /* Styling the Reset Button */
+.reset-btn {
+    background-color: #ff4d4d; /* A bright, clear red */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+/* Darken the red when the mouse hovers over it */
+.reset-btn:hover {
+    background-color: #cc0000; /* A darker "blood red" */
+}
+
+/* Make it look "pushed" when clicked */
+.reset-btn:active {
+    background-color: #a30000;
+    transform: translateY(2px);
+}
+
+/* Modal Background (Hidden by default) */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5); /* Dim the background */
+    align-items: center;
+    justify-content: center;
+}
+
+/* The White Box */
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.cancel-btn { background: #ccc; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+.confirm-reset-btn { background: #ff4d4d; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+
         .show { display: block !important; }
     </style>
 
@@ -172,6 +229,18 @@
 
     <button onclick="alert('Data is auto-saved to server!')" style="background: #28a745; width: 100%;">SAVE DATA</button>
     <button onclick="generatePDF()" style="background: #17a2b8; width: 100%;">SUMMARY (PDF)</button>
+    <button onclick="resetAllCounts()" class="reset-btn">Reset All Counts to 0</button>
+</div>
+
+<div id="resetModal" class="modal">
+  <div class="modal-content">
+    <h3>Are you sure?</h3>
+    <p>This will set all behavior counts to 0 for this session. This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button onclick="closeResetModal()" class="cancel-btn">No, Cancel</button>
+      <button onclick="confirmReset()" class="confirm-reset-btn">Yes, Reset Counts</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -328,6 +397,52 @@ window.onclick = function(event) {
                 openDropdown.classList.remove('show');
             }
         }
+    }
+}
+
+async function resetAllCounts() {
+    if (!confirm("Are you sure you want to reset all counts to zero? This cannot be undone.")) {
+        return;
+    }
+
+    // Get the current session ID from your app's state
+    const response = await fetch(`/reset_counts/${currentSessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+        // Refresh the display to show all zeros
+        loadBehaviors(currentSessionId); 
+        alert("Counts have been reset!");
+    } else {
+        alert("Error resetting counts.");
+    }
+}
+
+// Function to show the modal
+function openResetModal() {
+    document.getElementById('resetModal').style.display = 'flex';
+}
+
+// Function to hide the modal
+function closeResetModal() {
+    document.getElementById('resetModal').style.display = 'none';
+}
+
+// The actual Reset logic
+async function confirmReset() {
+    closeResetModal(); // Hide modal first
+    
+    const response = await fetch(`/reset_counts/${currentSessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+        loadBehaviors(currentSessionId); // Refresh your behavior list
+    } else {
+        alert("Error resetting counts.");
     }
 }
 </script>

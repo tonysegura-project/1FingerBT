@@ -138,6 +138,27 @@ def update_count():
         db.session.commit()
     return get_behaviors(data['session_id'])
 
+@app.route("/reset_counts/<int:session_id>", methods=["POST"])
+@login_required
+def reset_counts(session_id):
+    # 1. Find the session to make sure it belongs to the current user
+    session = Session.query.get(session_id)
+    if not session or session.user_id != current_user.id:
+        return jsonify({"status": "error", "message": "Session not found"}), 404
+
+    # 2. Find all behaviors for this session
+    behaviors = Behavior.query.filter_by(session_id=session_id).all()
+
+    # 3. Loop through them and set count to 0
+    for b in behaviors:
+        b.count = 0
+    
+    # 4. Save to the persistent disk
+    db.session.commit()
+    
+    # 5. Return the updated (zeroed) behaviors to the frontend
+    return jsonify({b.name: b.count for b in behaviors})
+
 @app.route("/delete_session/<int:session_id>", methods=["POST"])
 @login_required
 def delete_session(session_id):
