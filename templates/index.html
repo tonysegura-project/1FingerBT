@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f6f8;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+
+  /* 1. Ensure the background covers the entire screen */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f8;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* This forces the body to be at least the height of the screen */
+}
 
         .navbar {
             width: 100%;
@@ -33,16 +38,18 @@
         .nav-logo { height: 40px; width: auto; border-radius: 8px; }
         .nav-title { font-weight: bold; color: #333; font-size: 1.2rem; }
 
-        .container {
-            max-width: 500px;
-            width: 95%;
-            margin: 20px auto;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-        }
+.container {
+    max-width: 500px;
+    width: 95%;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+    
+    /* This margin trick centers it vertically and horizontally */
+    margin: auto; 
+}
 
         input, select { padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; box-sizing: border-box;}
         
