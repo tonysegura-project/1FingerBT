@@ -5,126 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        html, body { height: 100%; margin: 0; }
+    /* 1. Reset for consistent spacing across all browsers */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden; /* Prevent sideways scrolling */
+    }
+
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f4f6f8; /* Your light gray background */
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* 2. Standard Styles (For Computer/Tablet) */
+    .container {
+        max-width: 500px;
+        width: 95%;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-sizing: border-box;
+        margin: auto; /* Centers horizontally and vertically */
+    }
+
+    /* Input & Button Styles (Keep these the same) */
+    input, select { padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
+    button { padding: 15px; margin: 8px 0; border: none; border-radius: 10px; background: #007bff; color: white; font-weight: bold; cursor: pointer; font-size: 16px; touch-action: manipulation; }
+    button:hover { opacity: 0.9; }
+    .row { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+    .row input, .row select { margin-bottom: 0; flex: 1; }
+    
+    /* Center text within the container */
+    .container h1, .container h3 { text-align: center; color: #333; }
+    .container hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
+
+    /* 3. Button Row & Modal Styles (Keep these the same) */
+    .button-row { display: flex; gap: 8px; margin-top: 20px; justify-content: space-between; }
+    .button-row button { flex: 1; padding: 10px 5px; font-size: 12px; margin: 0; text-transform: uppercase; }
+    
+    #behaviorButtons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    #behaviorButtons button { margin: 0; padding: 20px 10px; font-size: 18px; }
+
+    #counts li { list-style: none; background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #eee; }
+    #totalCount { text-align: left; background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 20px; }
+
+    .navbar { width: 100%; background: white; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; flex-shrink: 0; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .nav-logo { height: 40px; width: auto; border-radius: 8px; }
+    .nav-title { font-weight: bold; color: #333; font-size: 1.2rem; }
+
+    .dropdown-content { display: none; position: absolute; right: 0; top: 50px; background-color: white; min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 100; border-radius: 8px; }
+    .dropdown-content button { margin: 0; border-radius: 0; width: 100%; text-align: left; padding: 12px; background: white; color: #dc3545;}
+    .dots-btn { width: 44px !important; height: 44px !important; padding: 0 !important; background: #6c757d !important; margin: 0 !important; font-size: 20px; }
+    .menu-container { position: relative; display: inline-block; }
+
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal-content { background-color: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px; width: 90%; }
+    .modal-actions { display: flex; justify-content: space-around; margin-top: 20px; }
+    .cancel-btn { background: #ccc; padding: 10px 20px; }
+    .danger { background: #dc3545 !important; }
+    .save-btn { background: #28a745 !important; }
+    .pdf-btn { background: #17a2b8 !important; }
+    .reset-btn { background: #ff4d4d !important; }
+
+    .toast { visibility: hidden; min-width: 250px; background-color: #4CAF50; color: white; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; top: 30px; transform: translateX(-50%); font-weight: bold; box-shadow: 0px 4px 10px rgba(0,0,0,0.2); }
+    .toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+    @keyframes fadein { from {top: 0; opacity: 0;} to {top: 30px; opacity: 1;} }
+    @keyframes fadeout { from {top: 30px; opacity: 1;} to {top: 0; opacity: 0;} }
+    .show { display: block !important; }
+
+    /* 4. THE POWER FIX: Mobile Edge-to-Edge Layout */
+    @media (max-width: 600px) {
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f6f8;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            background: white; /* Make the whole background white on mobile */
         }
 
         .navbar {
-            width: 100%;
-            background: white;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            box-sizing: border-box;
-            flex-shrink: 0; /* Prevents navbar from squishing */
+            border-bottom: 1px solid #eee; /* Add a subtle line below the navbar */
+            box-shadow: none; /* Remove shadow for a flatter look */
         }
-
-        .nav-brand { display: flex; align-items: center; gap: 12px; }
-        .nav-logo { height: 40px; width: auto; border-radius: 8px; }
-        .nav-title { font-weight: bold; color: #333; font-size: 1.2rem; }
 
         .container {
-            max-width: 500px;
-            width: 95%;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-            margin: auto; /* Centers the board in the space below the navbar */
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            border-radius: 0; /* Remove rounded corners */
+            box-shadow: none; /* Remove the shadow "card" look */
+            margin: 0; /* Remove centering margin */
+            padding: 20px; /* Keep padding so content doesn't touch the edge */
+            flex: 1; /* Fill the remaining screen space */
         }
-
-        input, select { padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; box-sizing: border-box;}
-        
-        button {
-            padding: 15px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 10px;
-            background: #007bff;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-            touch-action: manipulation;
-        }
-
-        button:hover { opacity: 0.9; }
-        
-        .row { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
-        .row input, .row select { margin-bottom: 0; flex: 1; }
-
-        .button-row { display: flex; gap: 8px; margin-top: 20px; justify-content: space-between; }
-        .button-row button { flex: 1; padding: 10px 5px; font-size: 12px; margin: 0; text-transform: uppercase; }
-
-        #counts li { list-style: none; background: #f8f9fa; padding: 12px; margin: 8px 0; border-radius: 8px; display: flex; justify-content: space-between; border: 1px solid #eee; }
-        
-        .danger { background: #dc3545 !important; }
-        .save-btn { background: #28a745 !important; }
-        .pdf-btn { background: #17a2b8 !important; }
-        .reset-btn { background: #ff4d4d !important; }
-
-        .menu-container { position: relative; display: inline-block; }
-        .dots-btn { width: 44px !important; height: 44px !important; padding: 0 !important; background: #6c757d !important; margin: 0 !important; font-size: 20px; }
-        
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 50px;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-            z-index: 100;
-            border-radius: 8px;
-        }
-
-        .dropdown-content button { margin: 0; border-radius: 0; width: 100%; text-align: left; padding: 12px; background: white; color: #dc3545;}
-
-        .modal {
-            display: none; 
-            position: fixed;
-            z-index: 1000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content { background-color: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px; width: 90%; }
-        .modal-actions { display: flex; justify-content: space-around; margin-top: 20px; }
-        .cancel-btn { background: #ccc; padding: 10px 20px; }
-
-        .toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
-            position: fixed;
-            z-index: 2000;
-            left: 50%; top: 30px;
-            transform: translateX(-50%);
-            font-weight: bold;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-        }
-
-        .toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-
-        @keyframes fadein { from {top: 0; opacity: 0;} to {top: 30px; opacity: 1;} }
-        @keyframes fadeout { from {top: 30px; opacity: 1;} to {top: 0; opacity: 0;} }
-        
-        .show { display: block !important; }
-    </style>
+    }
+</style>
 </head>
 <body>
 
