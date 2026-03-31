@@ -1,37 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Create Account - Behavior Tracker</title>
+    <title>Create Account - 1FingerBT</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* 1. Ensure the background covers the entire screen */
-html, body {
-    height: 100%;
-    margin: 0;
-}
-
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f4f6f8;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* This forces the body to be at least the height of the screen */
-}
-
-/* 2. Center the container on the screen */
-.container {
-    max-width: 500px;
-    width: 95%;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-    
-    /* This margin trick centers it vertically and horizontally */
-    margin: auto; 
-}
-        h2 { color: #333; margin-bottom: 10px; }
+        html, body { height: 100%; margin: 0; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .auth-container {
+            max-width: 400px;
+            width: 90%;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+            margin: auto;
+            text-align: center;
+        }
+        h2 { color: #333; margin-bottom: 10px; font-size: 24px; }
         p { color: #666; font-size: 14px; margin-bottom: 25px; }
         input {
             width: 100%;
@@ -45,7 +37,7 @@ body {
         button {
             width: 100%;
             padding: 14px;
-            background: #28a745; /* Green for signup to differentiate */
+            background: #28a745;
             color: white;
             border: none;
             border-radius: 8px;
@@ -57,23 +49,16 @@ body {
         .footer-link { margin-top: 20px; font-size: 14px; }
         a { color: #007bff; text-decoration: none; }
     </style>
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" type="image/png" href="/logo.png">
-<link rel="apple-touch-icon" href="/logo.png">
-
 </head>
 <body>
     <div class="auth-container">
         <h2>Join 1FingerBT</h2>
         <p>Start tracking behaviors professionally</p>
-
         <form method="POST">
             <input name="email" type="email" placeholder="Email Address" required>
             <input name="password" type="password" placeholder="Create Password" required>
             <button type="submit">Create Account</button>
         </form>
-
         <div class="footer-link">
             <a href="/login">Already have an account? Sign In</a>
         </div>
