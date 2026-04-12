@@ -1,67 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Create Account - 1FingerBT</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - 1FingerBT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        html, body { height: 100%; margin: 0; }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f6f8;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        /* 1. Full Screen Layout (Matching Login Page) */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff; /* Clean white edge-to-edge */
         }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 2. Container (Edge-to-Edge on Mobile) */
         .auth-container {
+            width: 100%;
             max-width: 400px;
-            width: 90%;
-            background: white;
             padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             box-sizing: border-box;
-            margin: auto;
             text-align: center;
         }
-        h2 { color: #333; margin-bottom: 10px; font-size: 24px; }
-        p { color: #666; font-size: 14px; margin-bottom: 25px; }
+
+        h2 {
+            font-weight: 600;
+            color: #222;
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        p {
+            color: #888;
+            font-size: 15px;
+            margin-bottom: 40px;
+        }
+
+        /* 3. Modern Underline Inputs */
         input {
             width: 100%;
-            padding: 14px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 16px 0; /* Vertical padding only */
+            margin-bottom: 20px;
+            border: none;
+            border-bottom: 2px solid #eee; /* The clean underline */
             font-size: 16px;
-            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+            background: transparent;
+            border-radius: 0; /* Removes default mobile rounding */
         }
+
+        input:focus {
+            border-bottom-color: #28a745; /* Turns green to match your Signup button */
+        }
+
+        /* 4. The Action Button (Success Green) */
         button {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: #28a745;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 17px;
             font-weight: bold;
             cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2); /* Soft green glow */
         }
-        button:hover { background: #218838; }
-        .footer-link { margin-top: 20px; font-size: 14px; }
-        a { color: #007bff; text-decoration: none; }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .footer-link {
+            margin-top: 30px;
+            font-size: 14px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <h2>Join 1FingerBT</h2>
-        <p>Start tracking behaviors professionally</p>
-        <form method="POST">
-            <input name="email" type="email" placeholder="Email Address" required>
-            <input name="password" type="password" placeholder="Create Password" required>
-            <button type="submit">Create Account</button>
-        </form>
-        <div class="footer-link">
-            <a href="/login">Already have an account? Sign In</a>
-        </div>
+
+<div class="auth-container">
+    <h2>JOIN 1FingerBT</h2>
+    <p>Start tracking behaviors professionally</p>
+
+    <form method="POST">
+        <input name="email" type="email" placeholder="Email Address" required>
+        <input name="password" type="password" placeholder="Create Password" required>
+        <button type="submit">CREATE ACCOUNT</button>
+    </form>
+
+    <div class="footer-link">
+        <a href="/login">Already have an account? Sign In</a>
     </div>
+</div>
+
 </body>
 </html>
