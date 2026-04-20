@@ -57,10 +57,15 @@ with app.app_context():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route("/")
+@app.route('/')
 @login_required
-def index():
-    return render_template("index.html")
+def dashboard():
+    return render_template('index.html') # The new 2x2 grid
+
+@app.route('/tracker')
+@login_required
+def tracker():
+    return render_template('tracker.html') # Your old project
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
