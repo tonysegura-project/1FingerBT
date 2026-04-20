@@ -12,7 +12,6 @@ app.config['SESSION_PERMANENT'] = False
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # 2. Database Path Logic
-# Using exactly 4 slashes for Render's persistent disk
 if os.path.exists("/var/lib/data"):
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/lib/data/behavior_tracker.db"
 else:
@@ -46,10 +45,8 @@ class Behavior(db.Model):
     session_id = db.Column(db.Integer, db.ForeignKey("session.id"), nullable=False)
 
 # ---------------- INITIALIZATION ----------------
-# This "with app.app_context():" block is what fixes the Render error!
 with app.app_context():
     db.create_all()
-    print("DATABASE: Tables initialized correctly.")
 
 # ---------------- ROUTES ----------------
 
@@ -60,12 +57,12 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def dashboard():
-    return render_template('index.html') # The new 2x2 grid
+    return render_template('index.html') 
 
 @app.route('/tracker')
 @login_required
 def tracker():
-    return render_template('tracker.html') # Your old project
+    return render_template('tracker.html') 
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -89,7 +86,8 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
             login_user(user, remember=False)
-            return redirect(url_for("index"))
+            # FIX: Point to 'dashboard' instead of 'index'
+            return redirect(url_for("dashboard"))
         flash("Invalid credentials.")
     return render_template("login.html")
 
@@ -99,6 +97,7 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
+# (API routes for data remain the same...)
 @app.route("/create_session", methods=["POST"])
 @login_required
 def create_session():
@@ -146,22 +145,13 @@ def update_count():
 @app.route("/reset_counts/<int:session_id>", methods=["POST"])
 @login_required
 def reset_counts(session_id):
-    # 1. Find the session to make sure it belongs to the current user
     session = Session.query.get(session_id)
     if not session or session.user_id != current_user.id:
         return jsonify({"status": "error", "message": "Session not found"}), 404
-
-    # 2. Find all behaviors for this session
     behaviors = Behavior.query.filter_by(session_id=session_id).all()
-
-    # 3. Loop through them and set count to 0
     for b in behaviors:
         b.count = 0
-    
-    # 4. Save to the persistent disk
     db.session.commit()
-    
-    # 5. Return the updated (zeroed) behaviors to the frontend
     return jsonify({b.name: b.count for b in behaviors})
 
 @app.route("/delete_session/<int:session_id>", methods=["POST"])
@@ -174,30 +164,21 @@ def delete_session(session_id):
         return jsonify({"status": "success", "message": "Session deleted"}), 200
     return jsonify({"status": "error", "message": "Could not find session"}), 404
 
+# Static file routes...
 @app.route('/manifest.json')
 def serve_manifest():
-    try:
-        base_dir = os.path.abspath(os.path.dirname(__file__))
-        return send_file(os.path.join(base_dir, 'manifest.json'), mimetype='application/json')
-    except Exception as e:
-        return str(e), 404
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    return send_file(os.path.join(base_dir, 'manifest.json'), mimetype='application/json')
 
 @app.route('/sw.js')
 def serve_sw():
-    try:
-        base_dir = os.path.abspath(os.path.dirname(__file__))
-        return send_file(os.path.join(base_dir, 'sw.js'), mimetype='application/javascript')
-    except Exception as e:
-        return str(e), 404
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    return send_file(os.path.join(base_dir, 'sw.js'), mimetype='application/javascript')
 
 @app.route('/logo.png')
 def serve_logo():
-    try:
-        return send_from_directory('static', 'logo.png')
-    except Exception as e:
-        return str(e), 404
+    return send_from_directory('static', 'logo.png')
 
-# ---------------- STARTUP ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
