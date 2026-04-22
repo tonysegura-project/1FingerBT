@@ -114,8 +114,7 @@
             <span class="nav-title">Tracker</span>
         </div>
     </div>
-    <a href="/logout"><button style="padding: 8px 15px; background: #6c757d; font-size: 14px; margin: 0;">Logout</button></a>
-</nav>
+    </nav>
 
 <div class="container">
     <h1 style="text-align: center; color: #333; margin-top: 0;">Behavior Tracker</h1>
@@ -131,10 +130,11 @@
         <select id="sessionSelect" onchange="loadBehaviors()"></select>
         <div class="menu-container">
             <button onclick="toggleMenu(event)" class="dots-btn">⋮</button>
-            <div id="sessionMenu" class="dropdown-content">
-                <button onclick="deleteSession()" class="danger" style="color: white;">Delete Session</button>
-            </div>
-        </div>
+        <div id="sessionMenu" class="dropdown-content">
+            <button onclick="duplicateSession()" style="color: #007bff;">Duplicate Session</button>
+            <button onclick="deleteSession()" class="danger" style="color: white;">Delete Session</button>
+       </div>
+    </div>
     </div>
 
     <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
@@ -367,6 +367,31 @@ function showToast(message) {
     toast.innerText = message;
     toast.className = "toast show";
     setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+}
+
+async function duplicateSession() {
+    if (!currentSessionId) return;
+    
+    const response = await fetch(`/duplicate_session/${currentSessionId}`, {
+        method: 'POST'
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        showToast("Session duplicated and selected! 📋");
+        
+        // 1. Refresh the dropdown list from the server
+        await fetchSessions(); 
+        
+        // 2. Find the dropdown and set its value to the new ID
+        const select = document.getElementById("sessionSelect");
+        select.value = data.new_id;
+        
+        // 3. Trigger the behavior load for the new session
+        loadBehaviors();
+    } else {
+        showToast("Error duplicating session. ❌");
+    }
 }
 </script>
 </body>

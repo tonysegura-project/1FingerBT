@@ -164,6 +164,34 @@ def delete_session(session_id):
         return jsonify({"status": "success", "message": "Session deleted"}), 200
     return jsonify({"status": "error", "message": "Could not find session"}), 404
 
+from datetime import datetime
+
+@app.route("/duplicate_session/<int:session_id>", methods=["POST"])
+@login_required
+def duplicate_session(session_id):
+    # 1. Get the original session
+    original = Session.query.get(session_id)
+    if not original or original.user_id != current_user.id:
+        return jsonify({"status": "error"}), 404
+
+    # 2. Create the new session (same name, current date)
+    from datetime import datetime
+    today = datetime.now().strftime("%m/%d/%Y")
+    new_session = Session(name=original.name, date=today, user_id=current_user.id)
+    
+    db.session.add(new_session)
+    db.session.flush() # This generates the new ID immediately
+
+    # 3. Copy behaviors but reset counts to 0
+    for b in original.behaviors:
+        new_behavior = Behavior(name=b.name, count=0, session_id=new_session.id)
+        db.session.add(new_behavior)
+
+    db.session.commit()
+    
+    # 4. Return the new ID so the frontend can jump to it
+    return jsonify({"status": "success", "new_id": new_session.id}), 200
+
 # Static file routes...
 @app.route('/manifest.json')
 def serve_manifest():
