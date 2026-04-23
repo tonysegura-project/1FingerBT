@@ -188,7 +188,8 @@ let behaviorData = {};
 window.onload = fetchSessions;
 
 function fetchSessions() {
-    fetch('/get_sessions')
+    // We add 'return' so other functions can 'await' this network call
+    return fetch('/get_sessions')
         .then(res => res.json())
         .then(data => {
             const select = document.getElementById("sessionSelect");
@@ -196,7 +197,9 @@ function fetchSessions() {
             data.forEach(s => {
                 select.innerHTML += `<option value="${s.id}">${s.name} - ${s.date}</option>`;
             });
-            if (data.length > 0) {
+            
+            // Only auto-load the first session if we don't already have one selected
+            if (data.length > 0 && !currentSessionId) {
                 currentSessionId = data[0].id;
                 loadBehaviors();
             }
@@ -378,17 +381,19 @@ async function duplicateSession() {
 
     if (response.ok) {
         const data = await response.json();
-        showToast("Session duplicated and selected! 📋");
         
-        // 1. Refresh the dropdown list from the server
+        // 1. We wait (await) for the list to actually finish building
         await fetchSessions(); 
         
-        // 2. Find the dropdown and set its value to the new ID
+        // 2. NOW the option exists, so we can select it
         const select = document.getElementById("sessionSelect");
         select.value = data.new_id;
+        currentSessionId = data.new_id; // Update our global variable too
         
-        // 3. Trigger the behavior load for the new session
+        // 3. Load the fresh (zeroed) behaviors
         loadBehaviors();
+        
+        showToast("Session duplicated and selected! 📋");
     } else {
         showToast("Error duplicating session. ❌");
     }
